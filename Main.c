@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <winreg.h>
 
 #pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "uxtheme.lib")
@@ -28,7 +27,6 @@
 #define IDC_OPERATION_LABEL 1011
 #define IDC_LABEL3 1012
 #define IDC_LABEL4 1013
-#define IDI_APPICON 101
 
 typedef BOOL (WINAPI *PFN_SHOULDAPPSUSEDARKMODE)(void);
 
@@ -38,7 +36,6 @@ static HFONT g_hTitleFont = NULL;
 static HBRUSH g_bgBrush = NULL;
 static HBRUSH g_panelBrush = NULL;
 static HBRUSH g_accentBrush = NULL;
-static HICON g_hWindowIcon = NULL;
 static PFN_SHOULDAPPSUSEDARKMODE g_pShouldAppsUseDarkMode = NULL;
 
 static LRESULT CALLBACK ControlTabSubclassProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -813,10 +810,6 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                 DeleteObject(g_hTitleFont);
                 g_hTitleFont = NULL;
             }
-            if (g_hWindowIcon) {
-                DestroyIcon(g_hWindowIcon);
-                g_hWindowIcon = NULL;
-            }
             ReleaseBrushes();
             PostQuitMessage(0);
             return 0;
@@ -858,14 +851,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     if (!hwnd) {
         MessageBoxA(NULL, "Window creation failed.", "Error", MB_ICONERROR | MB_OK);
         return 1;
-    }
-
-    g_hWindowIcon = LoadIconA(hInstance, MAKEINTRESOURCEA(IDI_APPICON));
-    if (g_hWindowIcon) {
-        SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)g_hWindowIcon);
-        SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM)g_hWindowIcon);
-        SetClassLongPtrA(hwnd, GCLP_HICON, (LONG_PTR)g_hWindowIcon);
-        SetClassLongPtrA(hwnd, GCLP_HICONSM, (LONG_PTR)g_hWindowIcon);
     }
 
     ApplyThemeToWindow(hwnd);
