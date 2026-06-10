@@ -12,5 +12,9 @@ theme_mode.txt
 
 # Editor settings
 .vs/
+.vscode/
 *.user
 *.suo
+
+# Windows metadata files
+desktop.ini

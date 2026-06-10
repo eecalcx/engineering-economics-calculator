@@ -14,11 +14,12 @@ A Windows desktop calculator built in C with a dark/light theme and a simple inp
 Use MinGW / MSYS2 GCC with the following command:
 
 ```powershell
-gcc -O2 -Wall -Wextra -mwindows "Percentage Calculator.c" -o "Percentage Calculator.exe" -lcomctl32 -luxtheme -ldwmapi -luser32 -lgdi32 -lole32
+windres appicon.rc -O coff -o appicon.res
+gcc -O2 -Wall -Wextra -mwindows Main.c appicon.res -o EECalc.exe -lcomctl32 -luxtheme -ldwmapi -luser32 -lgdi32 -lole32
 ```
 
 ## Run
-Double-click the generated `Percentage Calculator.exe` file.
+Double-click the generated EECalc.exe file.
 
 ## Notes
 - The executable is intentionally excluded from source control via `.gitignore`.
