@@ -1,26 +1,10 @@
 # Engineering Economics Calculator
-
-A Windows desktop calculator built in C with a dark/light theme and a simple input form for common engineering economics formulas.
+A engineering calculator app for Windows designed to make calculations essential economical cases | Built using C
 
 ## Features
-- Percentage increase/decrease
-- Present/future worth calculations
-- Uniform series and gradient calculations
-- Effective annual rate and inflation-adjusted calculations
-- Benefit-cost ratio estimation
-- Dark/light mode support
-
-## Build on Windows
-Use MinGW / MSYS2 GCC with the following command:
-
-```powershell
-windres appicon.rc -O coff -o appicon.res
-gcc -O2 -Wall -Wextra -mwindows Main.c appicon.res -o EECalc.exe -lcomctl32 -luxtheme -ldwmapi -luser32 -lgdi32 -lole32
-```
-
-## Run
-Double-click the generated EECalc.exe file.
-
-## Notes
-- The executable is intentionally excluded from source control via `.gitignore`.
-- The app stores its theme preference in `theme_mode.txt` next to the executable at runtime.
+1. Percentage increase/decrease calculations
+2. Present/future worth calculations
+3. Uniform series and gradient calculations
+4. Effective annual rate and inflation-adjusted calculations
+5. Benefit-cost ratio estimation
+6. Dark/light mode support
