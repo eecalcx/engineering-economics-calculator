@@ -28,6 +28,7 @@
 #define IDC_OPERATION_LABEL 1011
 #define IDC_LABEL3 1012
 #define IDC_LABEL4 1013
+#define IDI_APPICON 101
 
 typedef BOOL (WINAPI *PFN_SHOULDAPPSUSEDARKMODE)(void);
 
@@ -37,6 +38,7 @@ static HFONT g_hTitleFont = NULL;
 static HBRUSH g_bgBrush = NULL;
 static HBRUSH g_panelBrush = NULL;
 static HBRUSH g_accentBrush = NULL;
+static HICON g_hWindowIcon = NULL;
 static PFN_SHOULDAPPSUSEDARKMODE g_pShouldAppsUseDarkMode = NULL;
 
 static LRESULT CALLBACK ControlTabSubclassProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -126,19 +128,69 @@ static int LoadThemeModePreference(void) {
 }
 
 static COLORREF GetWindowBgColor(void) {
-    return g_darkMode ? RGB(32, 32, 32) : RGB(248, 248, 248);
+    return g_darkMode ? RGB(31, 31, 31) : RGB(248, 248, 248);
 }
 
 static COLORREF GetPanelColor(void) {
-    return g_darkMode ? RGB(43, 43, 43) : RGB(255, 255, 255);
+    return g_darkMode ? RGB(45, 45, 48) : RGB(255, 255, 255);
+}
+
+static COLORREF GetBorderColor(void) {
+    return g_darkMode ? RGB(68, 68, 71) : RGB(217, 217, 217);
 }
 
 static COLORREF GetThemeTextColor(void) {
-    return g_darkMode ? RGB(243, 243, 243) : RGB(24, 24, 24);
+    return g_darkMode ? RGB(240, 240, 240) : RGB(24, 24, 24);
 }
 
 static COLORREF GetAccentColor(void) {
     return g_darkMode ? RGB(0, 120, 212) : RGB(0, 99, 177);
+}
+
+static void DrawDarkButton(HDC hdc, const RECT *rect, BOOL primary, const char *text) {
+    COLORREF fill = primary ? GetAccentColor() : GetPanelColor();
+    COLORREF border = primary ? GetAccentColor() : GetBorderColor();
+    COLORREF textColor = primary ? RGB(255, 255, 255) : GetThemeTextColor();
+
+    HBRUSH fillBrush = CreateSolidBrush(fill);
+    HPEN borderPen = CreatePen(PS_SOLID, 1, border);
+    HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, fillBrush);
+    HPEN oldPen = (HPEN)SelectObject(hdc, borderPen);
+    Rectangle(hdc, rect->left, rect->top, rect->right, rect->bottom);
+    SelectObject(hdc, oldBrush);
+    SelectObject(hdc, oldPen);
+    DeleteObject(fillBrush);
+    DeleteObject(borderPen);
+
+    SetBkMode(hdc, TRANSPARENT);
+    SetTextColor(hdc, textColor);
+
+    RECT textRect = *rect;
+    InflateRect(&textRect, -4, -4);
+    DrawTextA(hdc, text, -1, &textRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+}
+
+static void DrawComboBoxItem(HDC hdc, const RECT *rect, BOOL selected, const char *text) {
+    COLORREF fill = selected ? GetAccentColor() : GetPanelColor();
+    COLORREF textColor = selected ? RGB(255, 255, 255) : GetThemeTextColor();
+    COLORREF border = selected ? GetAccentColor() : GetBorderColor();
+
+    HBRUSH fillBrush = CreateSolidBrush(fill);
+    HPEN borderPen = CreatePen(PS_SOLID, 1, border);
+    HBRUSH oldBrush = (HBRUSH)SelectObject(hdc, fillBrush);
+    HPEN oldPen = (HPEN)SelectObject(hdc, borderPen);
+    Rectangle(hdc, rect->left, rect->top, rect->right, rect->bottom);
+    SelectObject(hdc, oldBrush);
+    SelectObject(hdc, oldPen);
+    DeleteObject(fillBrush);
+    DeleteObject(borderPen);
+
+    SetBkMode(hdc, TRANSPARENT);
+    SetTextColor(hdc, textColor);
+
+    RECT textRect = *rect;
+    InflateRect(&textRect, -8, -2);
+    DrawTextA(hdc, text, -1, &textRect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 }
 
 static void ReleaseBrushes(void) {
@@ -575,7 +627,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 
             HWND hOperationLabel = CreateWindowExA(0, "STATIC", "Calculation", WS_CHILD | WS_VISIBLE | SS_LEFT,
                 24, 195, 180, 24, hwnd, (HMENU)IDC_OPERATION_LABEL, g_hInst, NULL);
-            HWND hOperation = CreateWindowExA(0, "COMBOBOX", "", WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS,
+            HWND hOperation = CreateWindowExA(0, "COMBOBOX", "", WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS | CBS_OWNERDRAWFIXED,
                 220, 190, 280, 120, hwnd, (HMENU)IDC_OPERATION, g_hInst, NULL);
             SendMessageA(hOperationLabel, WM_SETFONT, (WPARAM)g_hFont, TRUE);
             SendMessageA(hOperation, WM_SETFONT, (WPARAM)g_hFont, TRUE);
@@ -614,9 +666,9 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             SetWindowTheme(hValue4, L"Explorer", NULL);
             AttachTabNavigation(hValue4);
 
-            HWND hButton = CreateWindowExA(0, "BUTTON", "Calculate", WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_PUSHBUTTON | BS_NOTIFY,
+            HWND hButton = CreateWindowExA(0, "BUTTON", "Calculate", WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_PUSHBUTTON | BS_NOTIFY | BS_OWNERDRAW,
                 24, 350, 160, 42, hwnd, (HMENU)IDC_CALCULATE, g_hInst, NULL);
-            HWND hSettings = CreateWindowExA(0, "BUTTON", "Mode: Auto", WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_PUSHBUTTON | BS_NOTIFY,
+            HWND hSettings = CreateWindowExA(0, "BUTTON", "Mode: Auto", WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_PUSHBUTTON | BS_NOTIFY | BS_OWNERDRAW,
                 200, 350, 160, 42, hwnd, (HMENU)IDC_SETTINGS, g_hInst, NULL);
             SetWindowTheme(hButton, g_darkMode ? L"DarkMode_Explorer" : L"Explorer", NULL);
             SetWindowTheme(hSettings, g_darkMode ? L"DarkMode_Explorer" : L"Explorer", NULL);
@@ -647,6 +699,46 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                 UpdateInputLabels(hwnd);
             }
             return 0;
+
+        case WM_MEASUREITEM: {
+            LPMEASUREITEMSTRUCT measureItem = (LPMEASUREITEMSTRUCT)lParam;
+            if (measureItem->CtlType == ODT_LISTBOX || measureItem->CtlType == ODT_COMBOBOX) {
+                measureItem->itemHeight = 28;
+                return TRUE;
+            }
+            break;
+        }
+
+        case WM_DRAWITEM: {
+            LPDRAWITEMSTRUCT drawItem = (LPDRAWITEMSTRUCT)lParam;
+            if (drawItem->CtlType == ODT_BUTTON) {
+                char text[64] = {0};
+                SendMessageA(drawItem->hwndItem, WM_GETTEXT, sizeof(text), (LPARAM)text);
+                DrawDarkButton((HDC)drawItem->hDC, &drawItem->rcItem,
+                    (GetDlgCtrlID(drawItem->hwndItem) == IDC_CALCULATE), text);
+                return TRUE;
+            }
+
+            if (drawItem->CtlType == ODT_COMBOBOX) {
+                char text[128] = {0};
+                SendMessageA(drawItem->hwndItem, CB_GETLBTEXT, drawItem->itemID, (LPARAM)text);
+                if (text[0] == '\0') {
+                    strcpy(text, "Select a calculation");
+                }
+                DrawComboBoxItem((HDC)drawItem->hDC, &drawItem->rcItem,
+                    (drawItem->itemState & ODS_SELECTED) != 0, text);
+                return TRUE;
+            }
+
+            if (drawItem->CtlType == ODT_LISTBOX) {
+                char text[128] = {0};
+                SendMessageA(drawItem->hwndItem, LB_GETTEXT, drawItem->itemID, (LPARAM)text);
+                DrawComboBoxItem((HDC)drawItem->hDC, &drawItem->rcItem,
+                    (drawItem->itemState & ODS_SELECTED) != 0, text);
+                return TRUE;
+            }
+            break;
+        }
 
         case WM_KEYDOWN:
             if (wParam == VK_TAB) {
@@ -721,6 +813,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                 DeleteObject(g_hTitleFont);
                 g_hTitleFont = NULL;
             }
+            if (g_hWindowIcon) {
+                DestroyIcon(g_hWindowIcon);
+                g_hWindowIcon = NULL;
+            }
             ReleaseBrushes();
             PostQuitMessage(0);
             return 0;
@@ -762,6 +858,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     if (!hwnd) {
         MessageBoxA(NULL, "Window creation failed.", "Error", MB_ICONERROR | MB_OK);
         return 1;
+    }
+
+    g_hWindowIcon = LoadIconA(hInstance, MAKEINTRESOURCEA(IDI_APPICON));
+    if (g_hWindowIcon) {
+        SendMessageA(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)g_hWindowIcon);
+        SendMessageA(hwnd, WM_SETICON, ICON_BIG, (LPARAM)g_hWindowIcon);
+        SetClassLongPtrA(hwnd, GCLP_HICON, (LONG_PTR)g_hWindowIcon);
+        SetClassLongPtrA(hwnd, GCLP_HICONSM, (LONG_PTR)g_hWindowIcon);
     }
 
     ApplyThemeToWindow(hwnd);
