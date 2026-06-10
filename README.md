@@ -1,7 +1,7 @@
 # Engineering Economics Calculator
 A engineering calculator app for Windows designed to make calculations essential economical cases | Built using C
 
-<img width="528" height="535" alt="image" src="https://github.com/user-attachments/assets/902d9199-6654-45a6-9a2c-4ed7946cb9be" />
+<img width="542" height="551" alt="image" src="https://github.com/user-attachments/assets/31b166da-8c5f-47c4-9f17-6b3922c72e7e" />
 
 ## Features
 1. Percentage increase/decrease calculations
