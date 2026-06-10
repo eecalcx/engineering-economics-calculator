@@ -1,13 +1,20 @@
-@echo off
-setlocal
-set SRC=Main.c
-set OUT=EECalc.exe
+# Build outputs
+*.exe
+*.obj
+*.o
+*.dll
+*.ilk
+*.pdb
+*.log
 
-gcc -O2 -Wall -Wextra -mwindows %SRC% -o %OUT% -lcomctl32 -luxtheme -ldwmapi -luser32 -lgdi32 -lole32
-if errorlevel 1 (
-    echo Build failed.
-    exit /b 1
-)
+# Runtime artifacts
+theme_mode.txt
 
-echo Build complete: %OUT%
-endlocal
+# Editor settings
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Windows metadata files
+desktop.ini
